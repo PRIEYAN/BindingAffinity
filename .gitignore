@@ -1,0 +1,12 @@
+models/
+*.pkl
+*.pt
+*.csv
+*.txt
+*.json
+*.yaml
+*.yml
+*.jsonl
+*.jsonl.gz
+*.jsonl.bz2
+*.jsonl.zip
