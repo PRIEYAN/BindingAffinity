@@ -125,16 +125,21 @@ function parsePDB(pdbData: string): { atoms: Atom[]; bonds: Array<[number, numbe
 
 export function MoleculeViewer({ pdbId, structureUrl }: MoleculeViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<any>(null);
   const rendererRef = useRef<any>(null);
   const cameraRef = useRef<any>(null);
   const controlsRef = useRef<any>(null);
+  const initialCameraDistanceRef = useRef<number>(100);
 
   useEffect(() => {
     if (!mountRef.current) return;
 
     // Dynamic import of Three.js
     import('three').then((THREE) => {
+      // Make THREE available globally for zoom functions
+      (window as any).THREE = THREE;
+      
       // Scene setup with gradient background
       const scene = new THREE.Scene();
       const gradient = new THREE.Color(0x0a0a1a);
@@ -316,6 +321,7 @@ export function MoleculeViewer({ pdbId, structureUrl }: MoleculeViewerProps) {
 
             // Adjust camera to view the molecule
             const distance = maxDim * scale * 2;
+            initialCameraDistanceRef.current = distance;
             camera.position.set(distance * 0.7, distance * 0.5, distance * 0.7);
             camera.lookAt(0, 0, 0);
           })
@@ -383,11 +389,81 @@ export function MoleculeViewer({ pdbId, structureUrl }: MoleculeViewerProps) {
     });
   }, [pdbId, structureUrl]);
 
+  const handleZoomIn = () => {
+    if (cameraRef.current && (window as any).THREE) {
+      const THREE = (window as any).THREE;
+      const target = new THREE.Vector3(0, 0, 0);
+      const direction = new THREE.Vector3();
+      direction.subVectors(cameraRef.current.position, target).normalize();
+      cameraRef.current.position.addScaledVector(direction, -20);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (cameraRef.current && (window as any).THREE) {
+      const THREE = (window as any).THREE;
+      const target = new THREE.Vector3(0, 0, 0);
+      const direction = new THREE.Vector3();
+      direction.subVectors(cameraRef.current.position, target).normalize();
+      cameraRef.current.position.addScaledVector(direction, 20);
+    }
+  };
+
   return (
     <div
-      ref={mountRef}
-      className="w-full h-full rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+      ref={containerRef}
+      className="relative w-full h-full rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
       style={{ minHeight: '400px' }}
-    />
+    >
+      <div
+        ref={mountRef}
+        className="w-full h-full"
+      />
+      {/* Zoom Controls */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+        <button
+          onClick={handleZoomIn}
+          className="glass-card p-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 active:scale-95 shadow-lg backdrop-blur-md bg-white/10 border border-white/20 hover:border-white/30"
+          title="Zoom In"
+          aria-label="Zoom In"
+        >
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="glass-card p-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 active:scale-95 shadow-lg backdrop-blur-md bg-white/10 border border-white/20 hover:border-white/30"
+          title="Zoom Out"
+          aria-label="Zoom Out"
+        >
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M20 12H4"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }
