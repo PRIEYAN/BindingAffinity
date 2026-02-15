@@ -1,125 +1,146 @@
-# Protein-Ligand Binding Affinity Prediction
+# Binding Affinity AI - Premium macOS Dashboard
 
-This project trains machine learning models to predict the binding affinity between proteins and ligands.
+A modern, premium web application for predicting protein-ligand binding affinity using machine learning, featuring a beautiful macOS Sonoma-style interface with 3D molecule visualization.
 
-## Dataset
+## Features
 
-The dataset contains:
-- **Training set**: `final_train_features_true.csv` (16,226 samples)
-- **Validation set**: `final_valid_features_true.csv` (1,000 samples)
-- **Test set**: `test2013_features_true.csv` (195 samples)
-- **Coreset**: `coreset2016_features_true.csv` (285 samples)
+✨ **Premium macOS Design**
+- Glassmorphism UI with frosted glass effects
+- Smooth animations and transitions
+- Dark mode support
+- Inter font typography
+- Rounded corners and soft shadows
 
-Each sample contains:
-- First column: Protein-ligand complex identifier (PDB path)
-- Features: 16,801 numerical features describing protein-ligand interactions
-- Target: Binding affinity (last column, likely pKa or similar metric)
+🔬 **Advanced Features**
+- 3D molecule viewer (Three.js) with PDB structure rendering
+- Animated affinity prediction graph
+- RCSB PDB integration for structure search
+- Gemini AI for intelligent complex selection
+- XGBoost machine learning model
 
-## Installation
+📊 **Dashboard**
+- Sidebar navigation
+- Prediction form with validation
+- Results display with visualizations
+- History tracking (coming soon)
 
-1. Install required packages:
+## Tech Stack
+
+**Backend:**
+- Flask (Python)
+- XGBoost (ML Model)
+- Google Gemini AI
+- RCSB PDB API
+
+**Frontend:**
+- React + TypeScript
+- TailwindCSS
+- Framer Motion
+- Three.js
+- Axios
+
+## Quick Start
+
+### 1. Backend Setup
+
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Set Gemini API key
+export GEMINI_API_KEY='your-api-key-here'
+
+# Run backend
+python app.py
 ```
 
-## Usage
+Backend runs on `http://localhost:5000`
 
-Run the training script:
-```bash
-python train_binding_affinity.py
-```
-
-The script will:
-1. Load training and validation data
-2. Train multiple models (Random Forest, XGBoost, LightGBM, Gradient Boosting, optional PyTorch NN)
-3. Evaluate models on validation set
-4. Select the best model based on validation RMSE
-5. Save the best model to `models/` directory
-6. Evaluate the best model on test set
-
-## Models
-
-The script trains and compares:
-- **Random Forest**: Ensemble of decision trees (CPU only - no GPU support)
-- **XGBoost**: Gradient boosting with XGBoost (GPU support available)
-- **LightGBM**: Fast gradient boosting framework (GPU support available)
-- **Gradient Boosting**: Scikit-learn's gradient boosting (CPU only)
-- **PyTorch Neural Network**: Deep learning model (GPU support available, optional)
-
-**Note**: Random Forest and Gradient Boosting from scikit-learn use CPU only. XGBoost and LightGBM will automatically use GPU if available.
-
-## Evaluation Metrics
-
-- **RMSE** (Root Mean Squared Error): Lower is better
-- **MAE** (Mean Absolute Error): Lower is better
-- **R²** (Coefficient of Determination): Higher is better (closer to 1.0)
-
-## Output
-
-The script prints:
-- Dataset statistics
-- Training progress for each model
-- Validation metrics for each model
-- Best model selection
-- Test set performance (if test set is available)
-
-## Making Predictions
-
-After training, you can use the saved model to predict binding affinity for new protein-ligand pairs.
-
-### Simple Prediction Script
-
-For quick predictions from a CSV file:
+### 2. Frontend Setup
 
 ```bash
-python predict_simple.py input_features.csv [output_predictions.csv]
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
 ```
 
-Example:
-```bash
-python predict_simple.py test_features.csv predictions.csv
+Frontend runs on `http://localhost:5173`
+
+### 3. Open Browser
+
+Navigate to `http://localhost:5173`
+
+## Project Structure
+
+```
+.
+├── app.py                 # Flask backend
+├── rcsb_service.py        # RCSB PDB API integration
+├── gemini_service.py      # Gemini AI integration
+├── predictor.py           # XGBoost model loading & prediction
+├── models/                # Trained model files
+├── final_train_features_true.csv  # Training dataset
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── pages/         # Page components
+│   │   ├── services/      # API client
+│   │   └── App.tsx        # Main app
+│   └── package.json
+└── requirements.txt
 ```
 
-### Advanced Prediction Script
+## API Endpoints
 
-For more control and options:
+### POST `/predict`
 
-```bash
-python predict_affinity.py --input input_features.csv --output predictions.csv
+Predict binding affinity for protein-ligand pair.
+
+**Request:**
+```json
+{
+  "protein": "ACE2",
+  "ligand": "Remdesivir"
+}
 ```
 
-Or predict from command line features:
-```bash
-python predict_affinity.py --features 0.0 0.0 0.0 ... (16800 features)
+**Response:**
+```json
+{
+  "success": true,
+  "complex_id": "3rqw/3rqw_cplx.pdb",
+  "affinity": 6.2345,
+  "protein": "ACE2",
+  "ligand": "Remdesivir",
+  "pdb_id": "3rqw",
+  "structure_url": "https://files.rcsb.org/download/3RQW.pdb"
+}
 ```
 
-### Input Format
+## Environment Variables
 
-The input CSV file should have the same format as the training data:
-- **Option 1**: 16,800 features (no ID column)
-- **Option 2**: ID in first column + 16,800 features
-- **Option 3**: ID + features + target (target will be ignored)
+**Backend:**
+- `GEMINI_API_KEY` - Google Gemini API key (required)
 
-The script will automatically detect the format and extract features.
+**Frontend:**
+- `VITE_API_URL` - Backend API URL (default: http://localhost:5000)
 
-### Output Format
+## Deployment
 
-The output CSV contains:
-- `ID`: Identifier from input (or sample number)
-- `Predicted_Binding_Affinity`: Predicted binding affinity value
+See `DEPLOYMENT.md` for AWS deployment instructions.
 
-## Model Files
+## Screenshots
 
-After training, the following files are saved in the `models/` directory:
-- `best_model_<model_name>.pkl` or `.pt`: The trained model
-- `scaler_<model_name>.pkl`: Feature scaler
-- `metadata_<model_name>.pkl`: Model metadata and performance metrics
+The application features:
+- Clean, modern macOS-style interface
+- 3D interactive molecule viewer
+- Animated prediction visualizations
+- Smooth dark mode transitions
 
-## Customization
+## License
 
-You can modify the script to:
-- Adjust hyperparameters for each model
-- Add more models
-- Use different feature scaling methods
-- Implement cross-validation
-- Change model saving location
+MIT

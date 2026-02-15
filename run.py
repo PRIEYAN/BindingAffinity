@@ -6,6 +6,9 @@ It predicts from the SAME 16,800 engineered features used in your CSV files.
 
 So this script asks you for a complex ID (first column in your CSV, e.g. "3rqw/3rqw_cplx.pdb"),
 looks up its feature row inside the provided dataset CSVs, then runs the saved model.
+
+Can also be called with command-line argument:
+  python3 run.py <complex_id>
 """
 
 from __future__ import annotations
@@ -80,9 +83,15 @@ def main() -> int:
         print("Run training first so `models/` exists and contains best_model/scaler/metadata files.")
         return 1
 
-    print("\nEnter the COMPLEX ID exactly as it appears in your dataset CSV first column.")
-    print('Example: 3rqw/3rqw_cplx.pdb')
-    complex_id = input("\nComplex ID: ").strip()
+    # Check if complex_id provided as command-line argument
+    if len(sys.argv) > 1:
+        complex_id = sys.argv[1].strip()
+        print(f"\nUsing complex ID from command line: {complex_id}")
+    else:
+        print("\nEnter the COMPLEX ID exactly as it appears in your dataset CSV first column.")
+        print('Example: 3rqw/3rqw_cplx.pdb')
+        complex_id = input("\nComplex ID: ").strip()
+    
     if not complex_id:
         print("No ID provided.")
         return 1
