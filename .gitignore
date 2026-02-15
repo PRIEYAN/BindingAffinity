@@ -9,7 +9,9 @@ models/
 *.jsonl
 *.jsonl.gz
 *.jsonl.bz2
-*.jsonl.ziparchive.zip
+*.jsonl.zip
+*.zip
+archive.zip
 .env
 server.log
 node_modules/
