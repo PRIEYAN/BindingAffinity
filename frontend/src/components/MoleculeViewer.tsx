@@ -2,7 +2,7 @@
  * Enhanced 3D Molecule Viewer using Three.js with realistic colors and ball-and-stick model
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface MoleculeViewerProps {
   pdbId: string;
@@ -131,13 +131,15 @@ export function MoleculeViewer({ pdbId, structureUrl }: MoleculeViewerProps) {
   const cameraRef = useRef<any>(null);
   const controlsRef = useRef<any>(null);
   const initialCameraDistanceRef = useRef<number>(100);
+  const threeRef = useRef<any>(null);
 
   useEffect(() => {
     if (!mountRef.current) return;
 
     // Dynamic import of Three.js
     import('three').then((THREE) => {
-      // Make THREE available globally for zoom functions
+      // Store THREE for zoom functions
+      threeRef.current = THREE;
       (window as any).THREE = THREE;
       
       // Scene setup with gradient background
@@ -390,22 +392,48 @@ export function MoleculeViewer({ pdbId, structureUrl }: MoleculeViewerProps) {
   }, [pdbId, structureUrl]);
 
   const handleZoomIn = () => {
-    if (cameraRef.current && (window as any).THREE) {
-      const THREE = (window as any).THREE;
-      const target = new THREE.Vector3(0, 0, 0);
-      const direction = new THREE.Vector3();
-      direction.subVectors(cameraRef.current.position, target).normalize();
-      cameraRef.current.position.addScaledVector(direction, -20);
+    const camera = cameraRef.current;
+    const THREE = threeRef.current || (window as any).THREE;
+    
+    if (!camera || !THREE) {
+      console.warn('Camera or THREE.js not available');
+      return;
+    }
+
+    const target = new THREE.Vector3(0, 0, 0);
+    const direction = new THREE.Vector3();
+    direction.subVectors(camera.position, target).normalize();
+    
+    // Move camera closer (zoom in)
+    camera.position.addScaledVector(direction, -15);
+    camera.lookAt(target);
+    
+    // Force render update
+    if (rendererRef.current && sceneRef.current) {
+      rendererRef.current.render(sceneRef.current, camera);
     }
   };
 
   const handleZoomOut = () => {
-    if (cameraRef.current && (window as any).THREE) {
-      const THREE = (window as any).THREE;
-      const target = new THREE.Vector3(0, 0, 0);
-      const direction = new THREE.Vector3();
-      direction.subVectors(cameraRef.current.position, target).normalize();
-      cameraRef.current.position.addScaledVector(direction, 20);
+    const camera = cameraRef.current;
+    const THREE = threeRef.current || (window as any).THREE;
+    
+    if (!camera || !THREE) {
+      console.warn('Camera or THREE.js not available');
+      return;
+    }
+
+    const target = new THREE.Vector3(0, 0, 0);
+    const direction = new THREE.Vector3();
+    direction.subVectors(camera.position, target).normalize();
+    
+    // Move camera further (zoom out)
+    camera.position.addScaledVector(direction, 15);
+    camera.lookAt(target);
+    
+    // Force render update
+    if (rendererRef.current && sceneRef.current) {
+      rendererRef.current.render(sceneRef.current, camera);
     }
   };
 
